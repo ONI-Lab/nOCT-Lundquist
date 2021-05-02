@@ -1346,8 +1346,7 @@ namespace nOCT
             // set up wait handles for main loop
             WaitHandle[] pweLoop = new WaitHandle[2];
             pweLoop[0] = threadData.mreOutputKill;
-            // pweLoop[1] = threadData.mreOutputUpdate;
-            pweLoop[1] = threadData.mreOutputRun;  // edit by JL on 20210501
+            pweLoop[1] = threadData.mreOutputUpdate;
 
             // initialization complete
             threadData.mreOutputReady.Set();
@@ -1369,10 +1368,19 @@ namespace nOCT
 #endif
 
                 while (WaitHandle.WaitAny(pweLoop) == 1)
-                { 
-                    threadData.mreOutputUpdate.Reset();
-                    threadData.strOutputThreadStatus = "updating...";
+                {
+                    /* Begin: 20210501 editing by JL */
+                    if (threadData.mreOutputUpdate.WaitOne(0) == true)
+                    {
+                        fFastGalvoStart = UIData.fLLRangeFast;
+                        fFastGalvoStop = UIData.fLLRangeSlow;
+                        fSlowGalvoStart = UIData.nLLDwellFast;
+                        fSlowGalvoStop = UIData.nLLDwellSlow;
+                    } // if(threadData.mreOutputUpdate.WaitOne(0) == true)
+                    /* End: 20210501 editing by JL */
 
+                    threadData.mreOutputUpdate.Reset();
+                    threadData.strOutputThreadStatus = "updating...";                    
 
 #if (TRUEDAQ)
                     // fast galvo
